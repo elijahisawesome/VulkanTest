@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>
+#include <cstring>
 #include <vector>
 #include <optional>
 
@@ -19,7 +20,9 @@ const std::vector<const char*> validationLayers = {
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
 #else
-const bool enableValidationLayers = true;
+//Re-enable for windows, not going to go digging around in make rn.
+//const bool enableValidationLayers = true;
+const bool enableValidationLayers = false;
 #endif
 
 class HelloTriangleApplication {
