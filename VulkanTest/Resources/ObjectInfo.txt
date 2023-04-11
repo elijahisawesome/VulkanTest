@@ -1,0 +1,2 @@
+Resources/Models/BackSeat.obj,Resources/Textures/BackSeat.jpg,0,{0;0;0}
+Resources/Models/Door.obj,Resources/Textures/Door.jpg,1,{0;0;0}
