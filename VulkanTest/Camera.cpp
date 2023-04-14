@@ -54,7 +54,19 @@ void Camera::MatrixOps(UBO::UniformBufferObject* ubo) {
 	ubo->proj = glm::perspective(glm::radians(90.0f), Width / (float) Height, 0.1f, 10.0f);
 	ubo->proj[1][1] *= -1;
 	*/
+
+
 }
+/*
+
+glm::vec3 Camera::getOrientation() {
+	return Orientation;
+}
+glm::vec3 Camera::getPosition() {
+	return Position;
+}
+
+*/
 void Camera::updateInputs() {
 	InputGatherer->getKeyboardVals(&inputBoolArray);
 	if (inputBoolArray[0]) {

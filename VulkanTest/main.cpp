@@ -27,6 +27,7 @@
 #include "InputGatherer.h"
 #include "Camera.h"
 #include "UBO.h"
+#include "GameObject.h"
 
 
 //for windows
@@ -34,7 +35,9 @@
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
-const int TEXTURE_COUNT = 3;
+const int TEXTURE_COUNT = 5;
+const int SPEED_SCROLL_MULTIPLIER = 15;
+const int ROAD_LENGTH = 20;
 /*
 const std::string MODEL_PATH = "Resources/Models/BackSeat.obj";
 const std::string TEXTURE_PATH = "Resources/Textures/BackSeat.jpg";
@@ -629,7 +632,7 @@ struct ModelsAndTextures {
         ModelLoader Model;
         TextureImage Texture;
         float ScrollFactor;
-        glm::vec3 Position;
+        bool Collidable;
 };
 
 class HelloTriangleApplication : VulkanHelper {
@@ -688,6 +691,7 @@ private:
     TextureImage Texture1;
 
     std::vector<ModelsAndTextures> modelsAndTextures;
+    std::vector<GameObject> gameObjects;
     //Textures
     /*
     std::vector<VkImage> textureImages;
@@ -706,6 +710,7 @@ private:
     Camera camera;
 
     float transformOffset = 0;
+    float secondTransformOffset = ROAD_LENGTH*2;
 
 
     void initWindow() {
@@ -753,13 +758,14 @@ private:
 
 
         LoadModelsAndTextures();
+        
 
         createCommandBuffers();
         createSyncObjects();
     }
     void initGameObjects() {
         camera = Camera(WIDTH, HEIGHT, window, mousePositions, &inputGatherer);
-
+        createGameObjects();
     }
 
     void LoadModelsAndTextures() {
@@ -810,12 +816,8 @@ private:
         mt.Texture.Load(texture.c_str());
         mt.ScrollFactor = std::atoi(scrollFactor.c_str());
         //TODO Parse position later
-        mt.Position = glm::vec3(0, 0, 0);
+        mt.Collidable = std::stoi(position.c_str());
         modelsAndTextures.push_back(mt);
-
-        
-        
-
        }
 
     resources.close();
@@ -826,12 +828,38 @@ private:
             glfwPollEvents();
             inputGatherer.gatherInputs();
             camera.updateInputs();
+            updateGameobjects();
             drawFrame();
         }
         vkDeviceWaitIdle(device);
 
     }
 
+    void updateGameobjects() {
+    
+        //Time constraint to limit calculations. acutally make this not horrible later lmao
+        //This iterates through every game object to see if I'm looking at it, can probably fix with an actual data structure
+        
+        if (transformOffset < .0001f) {
+            for (auto go : gameObjects) {
+                //TODO Get rid of magic numbers. Make more extensibile. I literally need to go to bed, though.
+                go.updatePosition(glm::vec3(transformOffset,9,8));
+                if (go.rayCastHit(camera.getPosition(), glm::normalize(camera.getOrientation()))) {
+                    std::cout << "HIT!"<<'\n';
+                }
+            }
+        }
+
+    }
+    void createGameObjects() {
+        for (auto mt : modelsAndTextures) {
+            if (mt.Collidable) {
+                GameObject go;
+                gameObjects.push_back(go);
+            }
+        }
+
+    }
     void cleanup() {
         vkDestroyImageView(device, depthImageView, nullptr);
         vkDestroyImage(device, depthImage, nullptr);
@@ -1271,39 +1299,52 @@ private:
 
     }
     void commandBufferUpdateModels(VkCommandBuffer commandBuffer) {
-        
-        transformOffset += deltaTime();
-        if (transformOffset > 5) {
-            transformOffset = transformOffset/5;
-        }
+        //transform offsets for various scrolling elements.
+        float DeltaTime = deltaTime();
+        transformOffset -= DeltaTime * SPEED_SCROLL_MULTIPLIER;
+        secondTransformOffset -= DeltaTime * SPEED_SCROLL_MULTIPLIER;
 
+        if (transformOffset < -ROAD_LENGTH*2) {
+            transformOffset = 0;
+        }
+        if (secondTransformOffset < 0) {
+            secondTransformOffset = 0 + ROAD_LENGTH*2;
+        }
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
         vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
-
+        int x = 0;
         for (auto mt : modelsAndTextures) {
             //if we're scrolling, update transform
+            //if third member in model list, update push constant to render two roads, offset by roads length.
+            if (x == 2) {
+                transform = glm::translate(glm::mat4(1.0f), glm::vec3(secondTransformOffset, 0.0f, 0.0f));
+                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &mt.Texture.descriptorSet, 0, nullptr);
+                vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
+                mt.Model.Render(commandBuffer);
+                transform = glm::translate(glm::mat4(1.0f), glm::vec3(transformOffset, 0.0f, 0.0f));
+                vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
+                mt.Model.Render(commandBuffer);
+                x++;
+                continue;
+            }
+            else if (mt.ScrollFactor) {
+                transform = glm::translate(glm::mat4(1.0f), glm::vec3(transformOffset, 0.0f, 0.0f));
+                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &mt.Texture.descriptorSet, 0, nullptr);
+                vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
+                mt.Model.Render(commandBuffer);
+                x++;
+                continue;
+            }
 
-            if (mt.ScrollFactor) {
-               transform = glm::translate(glm::mat4(1.0f), glm::vec3(transformOffset, 0.0f, 0.0f));
-            }
-            else {
-                glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-            }
             //Update texture for current model
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &mt.Texture.descriptorSet, 0, nullptr);
             //update push constant for current model
             vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
             //render current model
             mt.Model.Render(commandBuffer);
+            x++;
         }
 
-        
-        
-        //Model.Render(commandBuffer);
-
-        //
-        //vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &Texture1.descriptorSet, 0, nullptr);
-        //Model1.Render(commandBuffer);
     }
     void createRenderPass() {
         VkAttachmentDescription colorAttachment{};
@@ -1732,9 +1773,6 @@ private:
     }
 
     void updateUniformBuffer(uint32_t currentImage) {
-
-        float sens = .001;
-
 
 
         // if(glfwinput)

@@ -20,15 +20,17 @@ class Camera{
 		Camera(uint32_t width, uint32_t height, GLFWwindow* window, std::vector<double>* mousePositions, INPUTGATHERER::InputGatherer* inputGatherer);
 		void MatrixOps(UBO::UniformBufferObject* ubo);
 		void updateInputs();
+		glm::vec3 getOrientation(){return Orientation;};
+		glm::vec3 getPosition() {return Position;};
 	private:
 		uint32_t Width;
 		uint32_t Height;
 		float nearPlane = .1f;
 		float farPlane = 100.f;
 
-		float speed = .01f;
+		float speed = .1f;
 		float Sensitivity = 10.f;
-		glm::vec3 Position = glm::vec3(2.0f,2.0f,2.0f);
+		glm::vec3 Position = glm::vec3(0.0f,9.0f,-8.0f);
 		glm::vec3 Orientation = glm::vec3(0.0f, 0.0f, -1.0f);
 		glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
 		std::vector<double>* MousePositions;

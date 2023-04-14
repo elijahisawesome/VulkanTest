@@ -1,2 +1,5 @@
-Resources/Models/BackSeat.obj,Resources/Textures/BackSeat.jpg,0,{0;0;0}
-Resources/Models/Door.obj,Resources/Textures/Door.jpg,1,{0;0;0}
+Resources/Models/BackSeat.obj,Resources/Textures/BackSeat.jpg,0,0
+Resources/Models/Door.obj,Resources/Textures/Door.jpg,0,0
+Resources/Models/Road.obj,Resources/Textures/Asphalt.jpg,1,0
+Resources/Models/LampPost.obj,Resources/Textures/White_Metal.jpeg,1,0
+Resources/Models/LightBulb.obj,Resources/Textures/Light.jpg,1,1

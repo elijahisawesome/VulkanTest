@@ -12,8 +12,8 @@ void main() {
     //outColor = texture(texSampler, fragTexCoord);
     float z = (gl_FragCoord.z/gl_FragCoord.w);
 
-    float fogFactor = exp2( -.5 * 
-                   .5 * 
+    float fogFactor = exp2( -.2 * 
+                   .2 * 
                    z * 
                    z * 
                    1.442695);

@@ -150,6 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="InputGatherer.h" />
     <ClInclude Include="UBO.h" />
   </ItemGroup>
