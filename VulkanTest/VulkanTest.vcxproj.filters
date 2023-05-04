@@ -13,6 +13,24 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\Soloud stuff">
+      <UniqueIdentifier>{c3f096d8-62b8-4e01-9860-77edd4bfdf67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Soloud stuff\Soloud Speech">
+      <UniqueIdentifier>{32e38e0c-21b5-4552-8383-3729e4fdfb47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Soloud stuff\Soloud Wav">
+      <UniqueIdentifier>{f27d6937-2844-4635-832c-8690c23c0932}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Soloud stuff\Soloud Noise">
+      <UniqueIdentifier>{e2c54d87-b7f2-4163-8e17-790bd93bb538}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Soloud stuff\Soloud Core">
+      <UniqueIdentifier>{ae61a720-b659-467b-bb78-4ebf8a07e2cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Soloud stuff\Soloud Filter">
+      <UniqueIdentifier>{ddc12f8f-c72c-464c-8c79-662ad5e88e25}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -23,6 +41,108 @@
     </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\speech\darray.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Speech</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\speech\klatt.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Speech</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\speech\resonator.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Speech</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\speech\soloud_speech.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Speech</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\speech\tts.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Speech</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\wav\dr_impl.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Wav</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\wav\soloud_wav.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Wav</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\wav\soloud_wavstream.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Wav</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\wav\stb_vorbis.c">
+      <Filter>Source Files\Soloud stuff\Soloud Wav</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\noise\soloud_noise.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Noise</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_thread.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_audiosource.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_bus.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_core_3d.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_core_basicops.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_core_faderops.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_core_filterops.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_core_getters.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_core_setters.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_core_voicegroup.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_core_voiceops.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_fader.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_fft.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_fft_lut.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_file.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_filter.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\backend\miniaudio\soloud_miniaudio.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_misc.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\core\soloud_queue.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\filter\soloud_biquadresonantfilter.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Filter</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\filter\soloud_freeverbfilter.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Filter</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\filter\soloud_echofilter.cpp">
+      <Filter>Source Files\Soloud stuff\Soloud Filter</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -36,6 +156,9 @@
     <None Include="shaders\shader.vert" />
     <None Include="shaders\compile.bat">
       <Filter>Source Files</Filter>
+    </None>
+    <None Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\speech\Elements.def">
+      <Filter>Source Files\Soloud stuff\Soloud Speech</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -51,5 +174,40 @@
     <ClInclude Include="GameObject.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="AudioEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLoaders\soloud_20200207\soloud20200207\src\backend\miniaudio\miniaudio.h">
+      <Filter>Source Files\Soloud stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\speech\darray.h">
+      <Filter>Source Files\Soloud stuff\Soloud Speech</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\speech\klatt.h">
+      <Filter>Source Files\Soloud stuff\Soloud Speech</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\speech\resonator.h">
+      <Filter>Source Files\Soloud stuff\Soloud Speech</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\speech\tts.h">
+      <Filter>Source Files\Soloud stuff\Soloud Speech</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\wav\dr_flac.h">
+      <Filter>Source Files\Soloud stuff\Soloud Wav</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\wav\dr_mp3.h">
+      <Filter>Source Files\Soloud stuff\Soloud Wav</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\wav\dr_wav.h">
+      <Filter>Source Files\Soloud stuff\Soloud Wav</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\wav\stb_vorbis.h">
+      <Filter>Source Files\Soloud stuff\Soloud Wav</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\speech\legal_readme.txt">
+      <Filter>Source Files\Soloud stuff\Soloud Speech</Filter>
+    </Text>
   </ItemGroup>
 </Project>

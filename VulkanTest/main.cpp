@@ -5,6 +5,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define TINYOBJLOADER_IMPLEMENTATION
 #define GLM_ENALBE_EXPERIMENTAL
+#define WITH_MINIAUDIO
+
 #include <GLFW/glfw3.h>
 
 #include <iostream>
@@ -28,6 +30,9 @@
 #include "Camera.h"
 #include "UBO.h"
 #include "GameObject.h"
+#include "AudioEngine.h"
+#include "soloud.h"
+
 
 
 //for windows
@@ -35,9 +40,13 @@
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
-const int TEXTURE_COUNT = 5;
+const int TEXTURE_COUNT = 80;
 const int SPEED_SCROLL_MULTIPLIER = 15;
 const int ROAD_LENGTH = 20;
+VkClearColorValue backgroundColor = { 0.02f,0.01f,0.02f,1.0f };
+const float FRAME_PACE = .01666;
+
+static float frameCountdown = 0;
 /*
 const std::string MODEL_PATH = "Resources/Models/BackSeat.obj";
 const std::string TEXTURE_PATH = "Resources/Textures/BackSeat.jpg";
@@ -633,6 +642,8 @@ struct ModelsAndTextures {
         TextureImage Texture;
         float ScrollFactor;
         bool Collidable;
+        bool SwapingTextures;
+        TextureImage adtlTextures[8];
 };
 
 class HelloTriangleApplication : VulkanHelper {
@@ -692,14 +703,8 @@ private:
 
     std::vector<ModelsAndTextures> modelsAndTextures;
     std::vector<GameObject> gameObjects;
-    //Textures
-    /*
-    std::vector<VkImage> textureImages;
-    std::vector<VkImageView> textureImageViews;
-    std::vector<VkSampler> textureSamplers;
-    */
-
-
+  
+    
     //Depth testing
     VkImage depthImage;
     VkDeviceMemory depthImageMemory;
@@ -708,6 +713,7 @@ private:
     InputGatherer inputGatherer;
     std::vector<double>* mousePositions;
     Camera camera;
+    AudioEngine audioEngine;
 
     float transformOffset = 0;
     float secondTransformOffset = ROAD_LENGTH*2;
@@ -742,19 +748,10 @@ private:
         //loadModel();
         //createVertexBuffer();
         //createIndexBuffer();
-        //TODO: Move into model loading function'
 
         createUniformBuffers();
         createDescriptorPool();
         createDescriptorSets();
-        /*
-        *Model.Load(MODEL_PATHS[0].c_str());
-        Model1.Load(MODEL_PATHS[1].c_str());
-
-
-        Texture.Load(TEXTURE_PATHS[0].c_str());
-        Texture1.Load(TEXTURE_PATHS[1].c_str());
-        */
 
 
         LoadModelsAndTextures();
@@ -772,7 +769,8 @@ private:
     std::string model;
     std::string texture;
     std::string scrollFactor;
-    std::string position;
+    std::string collidable;
+    std::string adtlTextures;
 
 
     std::string line;
@@ -784,7 +782,7 @@ private:
 
     while (std::getline(resources,line)) {
     int j = 0;
-        for(int x = 0; x<4;x++) {
+        for(int x = 0; x<5;x++) {
             switch (j) {
                 case 0:
                     model = line.substr(0, line.find(delimiter));
@@ -802,10 +800,14 @@ private:
                     j++;
                     break;
                 case 3:
-                    position = line.substr(0, line.find(delimiter));
+                    collidable = line.substr(0, line.find(delimiter));
                     line.erase(0, line.find(delimiter) + 1);
                     j++;
                     break;
+                case 4:
+                    adtlTextures = line.substr(0, line.find(delimiter));
+                    line.erase(0, line.find(delimiter) + 1);
+                    j++;
                 }
             }
         
@@ -815,8 +817,22 @@ private:
         mt.Model.Load(model.c_str());
         mt.Texture.Load(texture.c_str());
         mt.ScrollFactor = std::atoi(scrollFactor.c_str());
-        //TODO Parse position later
-        mt.Collidable = std::stoi(position.c_str());
+        mt.Collidable = std::stoi(collidable.c_str());
+        mt.SwapingTextures = std::stoi(adtlTextures);
+
+        if (mt.SwapingTextures) {
+            mt.adtlTextures[0] = mt.Texture;
+            for (int x = 1; x < 8; x++) {
+            //TODO convert iteration to file name.
+                std::string tempTex = texture;
+                tempTex[tempTex.find('1')] = std::to_string(x+1)[0];
+                std::cout<<tempTex;
+                //tempTex.replace((tempTex.length() - 5),tempTex.end(), '1', x);
+                //tempTex[tempTex.length() - 5] = char(x);
+                mt.adtlTextures[x].Load(tempTex.c_str());
+            }
+        }
+
         modelsAndTextures.push_back(mt);
        }
 
@@ -825,42 +841,62 @@ private:
 
     void mainLoop() {
         while (!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
-            inputGatherer.gatherInputs();
-            camera.updateInputs();
-            updateGameobjects();
-            drawFrame();
+            if (frameCountdown <= 0) {
+                glfwPollEvents();
+                inputGatherer.gatherInputs();
+                camera.updateInputs();
+                camera.collision();
+                updateGameobjects();
+                drawFrame();
+                resetFramecountdown();
+                
+        }
+            updateFrameCountdown();
         }
         vkDeviceWaitIdle(device);
 
     }
-
+    void updateFrameCountdown() {
+        frameCountdown -= deltaTime();
+    }
+    void resetFramecountdown() {
+        frameCountdown = FRAME_PACE;
+    }
     void updateGameobjects() {
     
         //Time constraint to limit calculations. acutally make this not horrible later lmao
         //This iterates through every game object to see if I'm looking at it, can probably fix with an actual data structure
-        
-        if (transformOffset < .0001f) {
-            for (auto go : gameObjects) {
-                //TODO Get rid of magic numbers. Make more extensibile. I literally need to go to bed, though.
-                go.updatePosition(glm::vec3(transformOffset,9,8));
-                if (go.rayCastHit(camera.getPosition(), glm::normalize(camera.getOrientation()))) {
-                    std::cout << "HIT!"<<'\n';
-                }
+        int gameobjectindex=0;
+        for (auto go : gameObjects) {
+            if (gameobjectindex == 0) {
+                go.updatePosition(glm::vec3(transformOffset, 9, 8));
             }
+            else {
+                go.updatePosition(glm::vec3(secondTransformOffset, 9, 8));
+            }
+            //TODO Get rid of magic numbers. Make more extensibile. I literally need to go to bed, though.
+            if (go.rayCastHit(camera.getPosition(),*camera.getOrientation())) {
+                audioEngine.play();
+                std::cout << "HIT!"<<'\n';
+            }
+            gameobjectindex++;
         }
 
     }
     void createGameObjects() {
         for (auto mt : modelsAndTextures) {
-            if (mt.Collidable) {
+            if (mt.Collidable && mt.ScrollFactor) {
                 GameObject go;
+                GameObject go2;
                 gameObjects.push_back(go);
+                gameObjects.push_back(go2);
             }
         }
 
     }
     void cleanup() {
+        audioEngine.destroy();
+        
         vkDestroyImageView(device, depthImageView, nullptr);
         vkDestroyImage(device, depthImage, nullptr);
         vkFreeMemory(device, depthImageMemory, nullptr);
@@ -948,7 +984,6 @@ private:
         }
     }
     void createSurface() {
-
         if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
             throw std::runtime_error("failed to create window surface");
         }
@@ -1164,7 +1199,11 @@ private:
 
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        colorBlendAttachment.blendEnable = VK_FALSE;
+        colorBlendAttachment.blendEnable = VK_TRUE;
+        //TODO, THis might be fucke dup
+        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
 
         VkPipelineColorBlendStateCreateInfo colorBlend{};
         colorBlend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -1177,7 +1216,7 @@ private:
         VkPushConstantRange pushConstants{};
         pushConstants.offset = 0;
         pushConstants.size = sizeof(glm::mat4);
-        pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -1270,7 +1309,7 @@ private:
         }
 
         std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = { {0.02f,0.01f,0.02f,1.0f} };
+        clearValues[0].color = { backgroundColor };
         clearValues[1].depthStencil = { 1.0f, 0 };
 
         VkRenderPassBeginInfo renderPassInfo{};
@@ -1300,9 +1339,9 @@ private:
     }
     void commandBufferUpdateModels(VkCommandBuffer commandBuffer) {
         //transform offsets for various scrolling elements.
-        float DeltaTime = deltaTime();
-        transformOffset -= DeltaTime * SPEED_SCROLL_MULTIPLIER;
-        secondTransformOffset -= DeltaTime * SPEED_SCROLL_MULTIPLIER;
+        //float DeltaTime = deltaTime();
+        transformOffset -= FRAME_PACE * SPEED_SCROLL_MULTIPLIER;
+        secondTransformOffset -= FRAME_PACE * SPEED_SCROLL_MULTIPLIER;
 
         if (transformOffset < -ROAD_LENGTH*2) {
             transformOffset = 0;
@@ -1310,36 +1349,37 @@ private:
         if (secondTransformOffset < 0) {
             secondTransformOffset = 0 + ROAD_LENGTH*2;
         }
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-        vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
+        glm::mat4 transform; //= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+        vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(glm::mat4), &transform);
         int x = 0;
         for (auto mt : modelsAndTextures) {
             //if we're scrolling, update transform
-            //if third member in model list, update push constant to render two roads, offset by roads length.
-            if (x == 2) {
+            if (mt.SwapingTextures) {
+                int val = (transformOffset/5)*-1;
+                //int val = roundf(val);
+                mt.Texture = mt.adtlTextures[val];
+
+                //std::cout<<val;
+            }
+
+            if (mt.ScrollFactor) {
                 transform = glm::translate(glm::mat4(1.0f), glm::vec3(secondTransformOffset, 0.0f, 0.0f));
                 vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &mt.Texture.descriptorSet, 0, nullptr);
-                vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
+                vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(glm::mat4), &transform);
                 mt.Model.Render(commandBuffer);
                 transform = glm::translate(glm::mat4(1.0f), glm::vec3(transformOffset, 0.0f, 0.0f));
-                vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
-                mt.Model.Render(commandBuffer);
-                x++;
-                continue;
-            }
-            else if (mt.ScrollFactor) {
-                transform = glm::translate(glm::mat4(1.0f), glm::vec3(transformOffset, 0.0f, 0.0f));
-                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &mt.Texture.descriptorSet, 0, nullptr);
-                vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
+                vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(glm::mat4), &transform);
                 mt.Model.Render(commandBuffer);
                 x++;
                 continue;
             }
 
+
+            transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
             //Update texture for current model
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &mt.Texture.descriptorSet, 0, nullptr);
             //update push constant for current model
-            vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
+            vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(glm::mat4), &transform);
             //render current model
             mt.Model.Render(commandBuffer);
             x++;
@@ -1774,22 +1814,6 @@ private:
 
     void updateUniformBuffer(uint32_t currentImage) {
 
-
-        // if(glfwinput)
-
-         //testing//
-
-
-         /*
-         UniformBufferObject ubo{};
-         ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-         ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(-xpos*sens, 0.0f, -ypos * sens), glm::vec3(0.0f, 0.0f, 1.0f));
-         ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
-         ubo.proj[1][1] *= -1;
-         */
-
-
-         //UniformBufferObject ubo{};
         UBO::UniformBufferObject ubo{};
 
         camera.MatrixOps(&ubo);

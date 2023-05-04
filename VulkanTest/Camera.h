@@ -8,6 +8,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include <vector>
+#include <iostream>
 
 #include "InputGatherer.h"
 #include "UBO.h"
@@ -20,7 +21,9 @@ class Camera{
 		Camera(uint32_t width, uint32_t height, GLFWwindow* window, std::vector<double>* mousePositions, INPUTGATHERER::InputGatherer* inputGatherer);
 		void MatrixOps(UBO::UniformBufferObject* ubo);
 		void updateInputs();
-		glm::vec3 getOrientation(){return Orientation;};
+		void collision();
+		std::vector<float>* getOrientation();
+
 		glm::vec3 getPosition() {return Position;};
 	private:
 		uint32_t Width;
@@ -29,13 +32,22 @@ class Camera{
 		float farPlane = 100.f;
 
 		float speed = .1f;
-		float Sensitivity = 10.f;
-		glm::vec3 Position = glm::vec3(0.0f,9.0f,-8.0f);
+		float Sensitivity = 100.f;
+		glm::vec3 Position = glm::vec3(-.4f,1.8f,-1.9f);
 		glm::vec3 Orientation = glm::vec3(0.0f, 0.0f, -1.0f);
+		//glm::vec3 cameraDirection = glm::vec3(0.0f,0.0f,0.0f);
+		std::vector<float> cameraDirection;
 		glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
 		std::vector<double>* MousePositions;
 		INPUTGATHERER::InputGatherer* InputGatherer;
 		std::vector<int> inputBoolArray;
+
+		float maxX = 1.f;
+		float minX = -.7f;
+		float maxY = 1.85f;
+		float minY = .8f;
+		float maxZ = -.3f;
+		float minZ = -1.8f;
 };
 
 

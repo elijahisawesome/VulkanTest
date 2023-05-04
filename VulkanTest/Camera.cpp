@@ -12,6 +12,7 @@ Camera::Camera(uint32_t width, uint32_t height, GLFWwindow* window, std::vector<
 	MousePositions = mousePositions;
 	InputGatherer = inputGatherer;
 	inputBoolArray = {0,0,0,0};
+	cameraDirection = {0.0f,0.0f,0.0f};
 }
 
 Camera::Camera() {}
@@ -31,14 +32,27 @@ void Camera::MatrixOps(UBO::UniformBufferObject* ubo) {
 	float rotY = Sensitivity * (float)((*MousePositions)[0] - (Width / 2)) / Width;
 	float rotX = Sensitivity * (float)((*MousePositions)[1] - (Height / 2)) / Height;
 
-	Orientation = glm::rotate(
+	glm::vec3 tempXOreintation = glm::rotate(
 		Orientation,
 		glm::radians(-rotX),
 		glm::normalize(glm::cross(Orientation, Up)));
 
+	if (!(glm::angle(tempXOreintation, Up) <= glm::radians(3.0f) || (glm::angle(tempXOreintation, -Up) <= glm::radians(3.0f)))) {
+		Orientation = tempXOreintation;
+	}
+
+
+
 	Orientation = glm::rotate(Orientation, glm::radians(-rotY), Up);
 
 	ubo->view = glm::lookAt(Position, Position+Orientation, Up);
+	
+	glm::vec3 CDirection = glm::normalize(glm::vec3(glm::inverse(ubo->view)[2]));
+	cameraDirection[0] = CDirection.x;
+	cameraDirection[1] = CDirection.y;
+	cameraDirection[2] = CDirection.z;
+
+
 	
 	//UBO PROJECTION
 
@@ -48,25 +62,38 @@ void Camera::MatrixOps(UBO::UniformBufferObject* ubo) {
 
 	ubo->proj[1][1] *= -1;
 
-	/*
-	ubo->model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo->view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f * Sensitivity, -(*MousePositions)[0] * Sensitivity, 0.0f * Sensitivity), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo->proj = glm::perspective(glm::radians(90.0f), Width / (float) Height, 0.1f, 10.0f);
-	ubo->proj[1][1] *= -1;
-	*/
-
-
-}
-/*
-
-glm::vec3 Camera::getOrientation() {
-	return Orientation;
-}
-glm::vec3 Camera::getPosition() {
-	return Position;
+	//std::cout << Position.x << " " << Position.y <<" " << Position.z << '\n';
 }
 
-*/
+void Camera::collision() {
+//TODO 
+//this is a really bad way to do this. Learn about collision algos later.
+	if (!(Position.x < maxX && Position.x > minX)) {
+		if (Position.x >= maxX) {
+			Position.x = maxX;
+		}
+		else {
+			Position.x = minX;
+		}
+	}
+	if (!(Position.y < maxY && Position.y > minY)) {
+		if (Position.y >= maxY) {
+			Position.y = maxY;
+		}
+		else {
+			Position.y = minY;
+		}
+	}
+	if (!(Position.z < maxZ && Position.z > minZ)) {
+		if (Position.z >= maxZ) {
+			Position.z = maxZ;
+		}
+		else {
+			Position.z = minZ;
+		}
+	}
+}
+
 void Camera::updateInputs() {
 	InputGatherer->getKeyboardVals(&inputBoolArray);
 	if (inputBoolArray[0]) {
@@ -82,4 +109,8 @@ void Camera::updateInputs() {
 		Position += speed * glm::normalize(glm::cross(Orientation, Up));
 	}
 
+}
+
+std::vector<float>* Camera::getOrientation() {
+	return &cameraDirection;
 }
