@@ -169,8 +169,8 @@ struct UniformBufferObject {
 const bool enableValidationLayers = false;
 #else
 //Re-enable for windows, not going to go digging around in make rn.
-const bool enableValidationLayers = true;
-//const bool enableValidationLayers = false;
+//const bool enableValidationLayers = true;
+const bool enableValidationLayers = false;
 #endif
 
 class VulkanHelper {

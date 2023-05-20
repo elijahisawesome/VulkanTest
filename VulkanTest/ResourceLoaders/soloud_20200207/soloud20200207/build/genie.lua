@@ -13,8 +13,8 @@ local WITH_OSS = 0
 local WITH_COREAUDIO = 0
 local WITH_VITA_HOMEBREW = 0
 local WITH_NOSOUND = 0
-local WITH_MINIAUDIO = 0
-local WITH_NULL = 1
+local WITH_MINIAUDIO = 1
+local WITH_NULL = 0
 local WITH_TOOLS = 0
 
 if (os.is("Windows")) then
@@ -22,8 +22,8 @@ if (os.is("Windows")) then
 elseif (os.is("macosx")) then
 	WITH_COREAUDIO = 1
 else
-	WITH_ALSA = 1
-	WITH_OSS = 1
+	WITH_ALSA = 0
+	WITH_OSS = 0
 end
 
 -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< --

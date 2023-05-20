@@ -7,15 +7,16 @@
 #include "soloud_biquadresonantfilter.h"
 #include <iostream>
 #include <string>
+#include <ctime>
 #include <math.h>
 
 
 AudioEngine::AudioEngine() {
 	soloud.init();
-	chime.load("C:/Users/chees/source/repos/VulkanTest/VulkanTest/Resources/Audio/Ambient/chime.wav");
-	tireThump.load("C:/Users/chees/source/repos/VulkanTest/VulkanTest/Resources/Audio/Ambient/tireThump.wav");
-	ambientWind.load("C:/Users/chees/source/repos/VulkanTest/VulkanTest/Resources/Audio/Ambient/windAmbient.wav");
-	Music.load("C:/Users/chees/source/repos/VulkanTest/VulkanTest/Resources/Audio/Music/Vanishes.wav");
+	chime.load("./Resources/Audio/Ambient/chime.wav");
+	tireThump.load("./Resources/Audio/Ambient/tireThump.wav");
+	ambientWind.load("./Resources/Audio/Ambient/windAmbient.wav");
+	Music.load("./Resources/Audio/Music/Vanishes.wav");
 	setRoadNoise();
 }
 void AudioEngine::setRoadNoise() {
