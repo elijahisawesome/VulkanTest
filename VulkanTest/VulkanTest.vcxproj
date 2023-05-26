@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.239.0\Include;C:\Program Files\Microsoft Visual Studio\2022\Community\Libraries\glfw-3.3.8.bin.WIN64\glfw-3.3.8.bin.WIN64\include;C:\Program Files\Microsoft Visual Studio\2022\Community\Libraries\glm;C:\Users\chees\source\repos\VulkanTest\VulkanTest\ResourceLoaders;C:\Users\chees\source\repos\VulkanTest\VulkanTest\ResourceLoaders\soloud_20200207\soloud20200207\include;C:\Users\chees\source\repos\VulkanTest\VulkanTest\ResourceLoaders\soloud_20200207\soloud20200207\src\backend\miniaudio</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.239.0\Include;C:\Program Files\Microsoft Visual Studio\2022\Community\Libraries\glfw-3.3.8.bin.WIN64\glfw-3.3.8.bin.WIN64\include;C:\Program Files\Microsoft Visual Studio\2022\Community\Libraries\glm;C:\Users\chees\source\repos\VulkanTest\VulkanTest\ResourceLoaders;C:\Users\chees\source\repos\VulkanTest\VulkanTest\ResourceLoaders\soloud_20200207\soloud20200207\include;C:\Users\chees\source\repos\VulkanTest\VulkanTest\ResourceLoaders\soloud_20200207\soloud20200207\src\backend\miniaudio;C:\Users\chees\source\repos\VulkanTest\VulkanTest\Controller\serial\include</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -123,7 +123,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.239.0\Include;C:\Program Files\Microsoft Visual Studio\2022\Community\Libraries\glfw-3.3.8.bin.WIN64\glfw-3.3.8.bin.WIN64\include;C:\Program Files\Microsoft Visual Studio\2022\Community\Libraries\glm;C:\Users\chees\source\repos\VulkanTest\VulkanTest\ResourceLoaders;C:\Users\chees\source\repos\VulkanTest\VulkanTest\ResourceLoaders\soloud_20200207\soloud20200207\include;C:\Users\chees\source\repos\VulkanTest\VulkanTest\ResourceLoaders\soloud_20200207\soloud20200207\src\backend\miniaudio</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.239.0\Include;C:\Program Files\Microsoft Visual Studio\2022\Community\Libraries\glfw-3.3.8.bin.WIN64\glfw-3.3.8.bin.WIN64\include;C:\Program Files\Microsoft Visual Studio\2022\Community\Libraries\glm;C:\Users\chees\source\repos\VulkanTest\VulkanTest\ResourceLoaders;C:\Users\chees\source\repos\VulkanTest\VulkanTest\ResourceLoaders\soloud_20200207\soloud20200207\include;C:\Users\chees\source\repos\VulkanTest\VulkanTest\ResourceLoaders\soloud_20200207\soloud20200207\src\backend\miniaudio;C:\Users\chees\source\repos\VulkanTest\VulkanTest\Controller\serial\include</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -139,6 +139,8 @@
   <ItemGroup>
     <ClCompile Include="AudioEngine.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Controller\serial\src\impl\win.cc" />
+    <ClCompile Include="Controller\serial\src\serial.cc" />
     <ClCompile Include="InputGatherer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\audiosource\noise\soloud_noise.cpp" />

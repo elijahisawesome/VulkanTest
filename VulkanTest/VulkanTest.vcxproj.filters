@@ -144,6 +144,12 @@
     <ClCompile Include="ResourceLoaders\soloud_20200207\soloud20200207\src\filter\soloud_echofilter.cpp">
       <Filter>Source Files\Soloud stuff\Soloud Filter</Filter>
     </ClCompile>
+    <ClCompile Include="Controller\serial\src\serial.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\serial\src\impl\win.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\frag.spv">

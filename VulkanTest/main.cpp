@@ -896,6 +896,7 @@ private:
     }
     void cleanup() {
         audioEngine.destroy();
+        camera.destroy();
         
         vkDestroyImageView(device, depthImageView, nullptr);
         vkDestroyImage(device, depthImage, nullptr);
@@ -1284,17 +1285,29 @@ private:
 
     }
 
+    //TODO
+    //I hate this but I don't want to make a new class for this build
+    //
     float deltaTime() {
         static auto startTime = std::chrono::high_resolution_clock::now();
 
         auto currentTime = std::chrono::high_resolution_clock::now();
+
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
         startTime = currentTime;
 
         return time;
     }
+    float deltaTimeBeginning() {
+        static auto startTime = std::chrono::high_resolution_clock::now();
 
+        auto currentTime = std::chrono::high_resolution_clock::now();
+
+        static float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        return time;
+    }
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
 
         VkCommandBufferBeginInfo beginInfo{};
@@ -1349,18 +1362,21 @@ private:
         if (secondTransformOffset < 0) {
             secondTransformOffset = 0 + ROAD_LENGTH*2;
         }
-        glm::mat4 transform; //= glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+        glm::mat4 transform;
+        glm::mat4 fadeIn;
         vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(glm::mat4), &transform);
         int x = 0;
+        //TODO 
+        //Wasteful use of push constant, may be advantageous to change frag shader push constant to a float
+        //
         for (auto mt : modelsAndTextures) {
-            //if we're scrolling, update transform
+            //if models swapping textures, update textures based on transform offset
             if (mt.SwapingTextures) {
                 int val = (transformOffset/5)*-1;
-                //int val = roundf(val);
                 mt.Texture = mt.adtlTextures[val];
-
-                //std::cout<<val;
             }
+
+            //fadeIn[0][0] = deltaTime();
 
             if (mt.ScrollFactor) {
                 transform = glm::translate(glm::mat4(1.0f), glm::vec3(secondTransformOffset, 0.0f, 0.0f));

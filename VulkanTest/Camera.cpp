@@ -2,6 +2,8 @@
 #include <chrono>
 #include "InputGatherer.h"
 #include "Camera.h"
+#include "serial/impl/win.h"
+#include "serial/serial.h"
 #include <iostream>
 #include "UBO.h"
 
@@ -13,11 +15,63 @@ Camera::Camera(uint32_t width, uint32_t height, GLFWwindow* window, std::vector<
 	InputGatherer = inputGatherer;
 	inputBoolArray = {0,0,0,0};
 	cameraDirection = {0.0f,0.0f,0.0f};
+	
+	newSerialTest = new serial::Serial("COM5", 9600, serial::Timeout::simpleTimeout(5));
 }
 
 Camera::Camera() {}
 void Camera::MatrixOps(UBO::UniformBufferObject* ubo) {
 	
+	//TODO Remove this
+
+	
+	newSerialTest->flushInput();
+	std::string testString = newSerialTest->readline();
+		
+		std::string string;
+		std::string delimiter = "/";
+		try {
+			for (int x = 0; x < 4; x++) {
+				switch (x) {
+				case 0:
+					string = testString.substr(0, testString.find(delimiter));
+					testString.erase(0, testString.find(delimiter) + 1);
+					rotx = std::stof(string);
+					//std::cout << "rotx:  " << string << '\n';
+					break;
+				case 1:
+					string = testString.substr(0, testString.find(delimiter));
+					testString.erase(0, testString.find(delimiter) + 1);
+					roty = std::stof(string);
+					//std::cout << "roty:  " << string << '\n';
+					break;
+				case 2:
+					string = testString.substr(0, testString.find(delimiter));
+					testString.erase(0, testString.find(delimiter) + 1);
+					rotz = std::stof(string);
+					//std::cout << "rotz:  " << string << '\n';
+					break;
+				case 3:
+					string = testString.substr(0, testString.find(delimiter));
+					testString.erase(0, testString.find(delimiter) + 1);
+					rotw = std::stof(string);
+					//std::cout << "rotw:  " << string << '\n';
+					break;
+				}
+
+			}
+		}
+		catch(std::exception e){
+			//return;
+		}
+
+		
+		//model = line.substr(0, line.find(delimiter));
+		//line.erase(0, line.find(delimiter) + 1);
+	//std::cout << "Arduino say:  " << testString << '\n';
+	//std::cout << "Arduino say:  " << testString << '\n';
+
+
 	glm::mat4 view = glm::mat4(1.0f);
 	glm::mat4 projection = glm::mat4(1.0f);
 
@@ -41,9 +95,13 @@ void Camera::MatrixOps(UBO::UniformBufferObject* ubo) {
 		Orientation = tempXOreintation;
 	}
 
+	glm::vec4 testvec(rotx,roty,rotz,rotw);
 
 
 	Orientation = glm::rotate(Orientation, glm::radians(-rotY), Up);
+
+
+	Orientation = glm::rotate(testvec, glm::radians(0.f), Up);
 
 	ubo->view = glm::lookAt(Position, Position+Orientation, Up);
 	
@@ -68,6 +126,10 @@ void Camera::MatrixOps(UBO::UniformBufferObject* ubo) {
 void Camera::collision() {
 //TODO 
 //this is a really bad way to do this. Learn about collision algos later.
+
+
+
+
 	if (!(Position.x < maxX && Position.x > minX)) {
 		if (Position.x >= maxX) {
 			Position.x = maxX;
@@ -113,4 +175,8 @@ void Camera::updateInputs() {
 
 std::vector<float>* Camera::getOrientation() {
 	return &cameraDirection;
+}
+void Camera::destroy() {
+	newSerialTest->close();
+	delete newSerialTest;
 }
