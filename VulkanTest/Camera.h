@@ -58,6 +58,8 @@ class Camera{
 		float roty;
 		float rotz;
 		float rotw;
+
+		glm::quat fallbackquat;
 };
 
 

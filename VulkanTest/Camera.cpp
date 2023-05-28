@@ -16,18 +16,24 @@ Camera::Camera(uint32_t width, uint32_t height, GLFWwindow* window, std::vector<
 	inputBoolArray = {0,0,0,0};
 	cameraDirection = {0.0f,0.0f,0.0f};
 	
-	newSerialTest = new serial::Serial("COM5", 9600, serial::Timeout::simpleTimeout(5));
+	newSerialTest = new serial::Serial("COM5", 19200, serial::Timeout::simpleTimeout(100));
 }
 
 Camera::Camera() {}
 void Camera::MatrixOps(UBO::UniformBufferObject* ubo) {
 	
-	//TODO Remove this
-
 	
+
+	//TODO Remove this and put in input gatherer
+	//Begin Serial stuff.
+	bool failed = false;
+	auto tertiaryquat = glm::quat(roty, -rotx, -rotz, rotw);
 	newSerialTest->flushInput();
 	std::string testString = newSerialTest->readline();
-		
+	if (testString.length() < 22) {
+			failed = true;
+			std::cout << testString.length() << '\n';
+	}
 		std::string string;
 		std::string delimiter = "/";
 		try {
@@ -37,40 +43,49 @@ void Camera::MatrixOps(UBO::UniformBufferObject* ubo) {
 					string = testString.substr(0, testString.find(delimiter));
 					testString.erase(0, testString.find(delimiter) + 1);
 					rotx = std::stof(string);
-					//std::cout << "rotx:  " << string << '\n';
+					//std::cout << "real:  " << string << '\n';
 					break;
 				case 1:
 					string = testString.substr(0, testString.find(delimiter));
 					testString.erase(0, testString.find(delimiter) + 1);
 					roty = std::stof(string);
-					//std::cout << "roty:  " << string << '\n';
+					//std::cout << "roti:  " << string << '\n';
 					break;
 				case 2:
 					string = testString.substr(0, testString.find(delimiter));
 					testString.erase(0, testString.find(delimiter) + 1);
 					rotz = std::stof(string);
-					//std::cout << "rotz:  " << string << '\n';
+					//std::cout << "rotj:  " << string << '\n';
 					break;
 				case 3:
 					string = testString.substr(0, testString.find(delimiter));
 					testString.erase(0, testString.find(delimiter) + 1);
 					rotw = std::stof(string);
-					//std::cout << "rotw:  " << string << '\n';
+					//std::cout << "rotk:  " << string << '\n';
+					//std::cout << "Orientation W: " << testquat.w << "Orientation X: " << testquat.x << "Orientation Y: " << testquat.y << "Orientation Z: " << testquat.z << "\n";
+
 					break;
 				}
 
 			}
 		}
 		catch(std::exception e){
+			//failed = true;
 			//return;
 		}
+	glm::quat displayOrientationQuat(roty, -rotx, -rotz, rotw);
+	glm::quat collisionOrientationQuat(rotx, roty, rotz, rotw);
 
-		
-		//model = line.substr(0, line.find(delimiter));
-		//line.erase(0, line.find(delimiter) + 1);
-	//std::cout << "Arduino say:  " << testString << '\n';
-	//std::cout << "Arduino say:  " << testString << '\n';
+	if (!failed) {
+		fallbackquat = displayOrientationQuat;
+	}
+	else {
+		displayOrientationQuat = fallbackquat;
+		std::cout << "Failed" << "\n";
+	}
 
+	//TODO Remove above
+	//end serial stuff
 
 	glm::mat4 view = glm::mat4(1.0f);
 	glm::mat4 projection = glm::mat4(1.0f);
@@ -95,15 +110,20 @@ void Camera::MatrixOps(UBO::UniformBufferObject* ubo) {
 		Orientation = tempXOreintation;
 	}
 
-	glm::vec4 testvec(rotx,roty,rotz,rotw);
 
-
+	
 	Orientation = glm::rotate(Orientation, glm::radians(-rotY), Up);
 
+	//todo remove thislol
+	//Orientation = glm::rotate(glm::eulerAngles(testvec), glm::radians(0.f), Up);
+	Orientation = glm::eulerAngles(collisionOrientationQuat);
+	auto translate = glm::mat4(1.0f);
+	translate = glm::translate(translate,-Position);
+	auto rotation = glm::mat4_cast(displayOrientationQuat);
 
-	Orientation = glm::rotate(testvec, glm::radians(0.f), Up);
+	ubo->view = rotation * translate;
 
-	ubo->view = glm::lookAt(Position, Position+Orientation, Up);
+	//ubo->view = glm::lookAt(Position, Position+Orientation, Up);
 	
 	glm::vec3 CDirection = glm::normalize(glm::vec3(glm::inverse(ubo->view)[2]));
 	cameraDirection[0] = CDirection.x;
