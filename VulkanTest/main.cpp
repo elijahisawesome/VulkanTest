@@ -45,6 +45,7 @@ const int SPEED_SCROLL_MULTIPLIER = 15;
 const int ROAD_LENGTH = 20;
 VkClearColorValue backgroundColor = { 0.02f,0.01f,0.02f,1.0f };
 const float FRAME_PACE = .01666;
+const float FADE_IN_SPEED = 10;
 
 static float frameCountdown = 0;
 /*
@@ -169,8 +170,8 @@ struct UniformBufferObject {
 const bool enableValidationLayers = false;
 #else
 //Re-enable for windows, not going to go digging around in make rn.
-const bool enableValidationLayers = true;
-//const bool enableValidationLayers = false;
+//const bool enableValidationLayers = true;
+const bool enableValidationLayers = false;
 #endif
 
 class VulkanHelper {
@@ -1214,17 +1215,24 @@ private:
 
         VkDescriptorSetLayout setLayouts[] = { uniformDescriptorSetLayout, textureDescriptorSetLayout };
 
-        VkPushConstantRange pushConstants{};
-        pushConstants.offset = 0;
-        pushConstants.size = sizeof(glm::mat4);
-        pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        VkPushConstantRange vertexPushConstant{};
+        vertexPushConstant.offset = 0;
+        vertexPushConstant.size = sizeof(glm::mat4);
+        vertexPushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+        VkPushConstantRange fragmentPushConstant{};
+        fragmentPushConstant.offset = sizeof(glm::mat4);
+        fragmentPushConstant.size = sizeof(float);
+        fragmentPushConstant.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        VkPushConstantRange pushConstants[] = {vertexPushConstant, fragmentPushConstant};
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 2;
         pipelineLayoutInfo.pSetLayouts = setLayouts;
-        pipelineLayoutInfo.pushConstantRangeCount = 1;
-        pipelineLayoutInfo.pPushConstantRanges = &pushConstants;
+        pipelineLayoutInfo.pushConstantRangeCount = 2;
+        pipelineLayoutInfo.pPushConstantRanges = pushConstants;
 
         if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
@@ -1299,12 +1307,12 @@ private:
 
         return time;
     }
-    float deltaTimeBeginning() {
+    float deltaTimeFromBeginning() {
         static auto startTime = std::chrono::high_resolution_clock::now();
 
         auto currentTime = std::chrono::high_resolution_clock::now();
 
-        static float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
         return time;
     }
@@ -1315,14 +1323,21 @@ private:
         beginInfo.flags = 0; // Optional
         beginInfo.pInheritanceInfo = nullptr; // Optional
 
-
+        //todo
+        //spin this off to it's own place
+        float fadeIn = fadeInCalc();
+        VkClearColorValue trueBackgroundColor = backgroundColor;
+        if (fadeIn != 1.f) {
+            trueBackgroundColor ={ 0.02f * fadeIn,0.01f * fadeIn ,0.02f * fadeIn,1.0f};
+        }
 
         if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
             throw std::runtime_error("failed to begin recording command buffer!");
         }
+        
 
         std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = { backgroundColor };
+        clearValues[0].color = { trueBackgroundColor};
         clearValues[1].depthStencil = { 1.0f, 0 };
 
         VkRenderPassBeginInfo renderPassInfo{};
@@ -1350,6 +1365,14 @@ private:
         }
 
     }
+    float fadeInCalc() {
+        static float fadeIn = 1.0f;
+        if(fadeIn >1)
+            {return 1;}
+
+        fadeIn= (deltaTimeFromBeginning()/FADE_IN_SPEED);
+        return fadeIn;
+    }
     void commandBufferUpdateModels(VkCommandBuffer commandBuffer) {
         //transform offsets for various scrolling elements.
         //float DeltaTime = deltaTime();
@@ -1363,8 +1386,11 @@ private:
             secondTransformOffset = 0 + ROAD_LENGTH*2;
         }
         glm::mat4 transform;
-        glm::mat4 fadeIn;
-        vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(glm::mat4), &transform);
+        float fadeIn;
+        fadeIn = fadeInCalc();
+
+        vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
+        vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::mat4), sizeof(float), &fadeIn);
         int x = 0;
         //TODO 
         //Wasteful use of push constant, may be advantageous to change frag shader push constant to a float
@@ -1382,9 +1408,11 @@ private:
                 transform = glm::translate(glm::mat4(1.0f), glm::vec3(secondTransformOffset, 0.0f, 0.0f));
                 vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &mt.Texture.descriptorSet, 0, nullptr);
                 vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(glm::mat4), &transform);
+                vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::mat4), sizeof(float), &fadeIn);
                 mt.Model.Render(commandBuffer);
                 transform = glm::translate(glm::mat4(1.0f), glm::vec3(transformOffset, 0.0f, 0.0f));
                 vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(glm::mat4), &transform);
+                vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::mat4), sizeof(float), &fadeIn);
                 mt.Model.Render(commandBuffer);
                 x++;
                 continue;
@@ -1396,6 +1424,7 @@ private:
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &mt.Texture.descriptorSet, 0, nullptr);
             //update push constant for current model
             vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(glm::mat4), &transform);
+            vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::mat4), sizeof(float), &fadeIn);
             //render current model
             mt.Model.Render(commandBuffer);
             x++;

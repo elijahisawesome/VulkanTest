@@ -8,15 +8,16 @@ layout(location = 1) in vec2 fragTexCoord;
 layout(set = 1, binding = 0) uniform sampler2D texSampler;
 
 layout(push_constant) uniform pushConstant{
-    mat4 model;
+    layout(offset = 64) float fadeInFactor;
 }ps;
 
 
 void main() {
 
     float z = (gl_FragCoord.z/gl_FragCoord.w);
-    vec3 LightbulbPosition = vec3(ps.model[3][0],ps.model[3][1],ps.model[3][2]);
-    vec3 FixedLightBulbPositon = LightbulbPosition/20;
+    //vec3 LightbulbPosition = vec3(ps.model[3][0],ps.model[3][1],ps.model[3][2]);
+    //vec3 FixedLightBulbPositon = LightbulbPosition/20;
+    vec4 fogColor = vec4(0.02, 0.01, 0.02, 1.0);
 
     float transparentAlphaReducer = .5;
 
@@ -40,5 +41,13 @@ void main() {
 
     fogFactor = clamp(fogFactor, 0.0, 1.0);
 
-    outColor = mix(vec4(0.02,0.01,0.02,1.0),tempColor,fogFactor);
+    tempColor.x *=ps.fadeInFactor;
+    tempColor.y *=ps.fadeInFactor;
+    tempColor.z *=ps.fadeInFactor;
+
+    fogColor.x *=ps.fadeInFactor;
+    fogColor.y *=ps.fadeInFactor;
+    fogColor.z *=ps.fadeInFactor;
+
+    outColor = mix(fogColor,tempColor,fogFactor);
 }
